@@ -7,7 +7,8 @@
 #include <assert.h>
 #include <bl_common.h>
 #include <gic_common.h>
-#include <gicv2.h>
+#include <gicv3.h>
+#include <platform.h>
 #include <platform_def.h>
 #include "qemu_private.h"
 
@@ -26,6 +27,9 @@
  */
 static entry_point_info_t bl32_image_ep_info;
 static entry_point_info_t bl33_image_ep_info;
+
+/* The GICv3 driver only needs to be initialized in EL3 */
+uintptr_t rdistif_base_addrs[PLATFORM_CORE_COUNT];
 
 /*******************************************************************************
  * Perform any BL3-1 early platform setup.  Here is an opportunity to copy
@@ -130,29 +134,33 @@ void bl31_plat_arch_setup(void)
 	INTR_PROP_DESC(QEMU_IRQ_SEC_SGI_6, GIC_HIGHEST_SEC_PRIORITY,	\
 					   grp, GIC_INTR_CFG_EDGE),	\
 	INTR_PROP_DESC(QEMU_IRQ_SEC_SGI_7, GIC_HIGHEST_SEC_PRIORITY,	\
+					   grp, GIC_INTR_CFG_EDGE),     \
+	INTR_PROP_DESC(29,		   GIC_HIGHEST_SEC_PRIORITY,	\
 					   grp, GIC_INTR_CFG_EDGE)
 
 #define PLATFORM_G0_PROPS(grp)
 
 static const interrupt_prop_t qemu_interrupt_props[] = {
-	PLATFORM_G1S_PROPS(GICV2_INTR_GROUP0),
-	PLATFORM_G0_PROPS(GICV2_INTR_GROUP0)
+	PLATFORM_G1S_PROPS(INTR_GROUP1S),
+	PLATFORM_G0_PROPS(INTR_GROUP0)
 };
 
-static const struct gicv2_driver_data plat_gicv2_driver_data = {
+static const struct gicv3_driver_data plat_gicv3_driver_data = {
 	.gicd_base = GICD_BASE,
-	.gicc_base = GICC_BASE,
+	.gicr_base = GICR_BASE,
 	.interrupt_props = qemu_interrupt_props,
 	.interrupt_props_num = ARRAY_SIZE(qemu_interrupt_props),
+	.rdistif_num = PLATFORM_CORE_COUNT,
+	.rdistif_base_addrs = rdistif_base_addrs,
 };
 
 void bl31_platform_setup(void)
 {
 	/* Initialize the gic cpu and distributor interfaces */
-	gicv2_driver_init(&plat_gicv2_driver_data);
-	gicv2_distif_init();
-	gicv2_pcpu_distif_init();
-	gicv2_cpuif_enable();
+	gicv3_driver_init(&plat_gicv3_driver_data);
+	gicv3_distif_init();
+	gicv3_rdistif_init(plat_my_core_pos());
+	gicv3_cpuif_enable(plat_my_core_pos());
 }
 
 unsigned int plat_get_syscnt_freq2(void)

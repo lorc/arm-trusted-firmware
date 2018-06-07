@@ -7,7 +7,7 @@
 #include <arch_helpers.h>
 #include <assert.h>
 #include <debug.h>
-#include <gicv2.h>
+#include <gicv3.h>
 #include <platform.h>
 #include <platform_def.h>
 #include <psci.h>
@@ -172,10 +172,9 @@ void qemu_pwr_domain_on_finish(const psci_power_state_t *target_state)
 					PLAT_LOCAL_STATE_OFF);
 
 	/* TODO: This setup is needed only after a cold boot */
-	gicv2_pcpu_distif_init();
-
+	gicv3_rdistif_init(plat_my_core_pos());
 	/* Enable the gic cpu interface */
-	gicv2_cpuif_enable();
+	gicv3_cpuif_enable(plat_my_core_pos());
 }
 
 /*******************************************************************************

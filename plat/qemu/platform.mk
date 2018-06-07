@@ -148,11 +148,11 @@ ifeq (${ARM_ARCH_MAJOR},8)
 BL31_SOURCES		+=	lib/cpus/aarch64/aem_generic.S		\
 				lib/cpus/aarch64/cortex_a53.S		\
 				lib/cpus/aarch64/cortex_a57.S		\
-				drivers/arm/gic/v2/gicv2_helpers.c	\
-				drivers/arm/gic/v2/gicv2_main.c		\
+				drivers/arm/gic/v3/gicv3_helpers.c	\
+				drivers/arm/gic/v3/gicv3_main.c		\
 				drivers/arm/gic/common/gic_common.c	\
-				plat/common/plat_gicv2.c		\
 				plat/common/plat_psci_common.c		\
+				plat/common/plat_gicv3.c		\
 				plat/qemu/qemu_pm.c			\
 				plat/qemu/topology.c			\
 				plat/qemu/aarch64/plat_helpers.S	\
